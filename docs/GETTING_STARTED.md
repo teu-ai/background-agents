@@ -47,9 +47,10 @@ brew install terraform
 # Node.js (22+)
 brew install node@22
 
-# Python 3.12+ and Modal CLI
-pipx install modal
-modal setup
+# Python 3.12+ and uv (Modal app deps; Terraform runs `uv run modal deploy` from packages/modal-infra)
+brew install uv
+cd packages/modal-infra && uv sync
+modal setup   # one-time: Modal auth
 
 # Wrangler CLI (for initial R2 bucket setup)
 npm install -g wrangler
@@ -354,11 +355,15 @@ enable_durable_object_bindings = false
 enable_service_bindings        = false
 ```
 
-**Important**: Build the workers before running Terraform (Terraform references the built bundles):
+**Important**: Build the workers before running Terraform (Terraform references the built bundles).
+Sync Modal app deps so Terraform's deploy step has httpx, PyJWT, fastapi, etc.:
 
 ```bash
 # From the repository root
 npm run build -w @open-inspect/control-plane -w @open-inspect/slack-bot
+
+# Sync Modal app dependencies (Terraform runs uv run modal deploy from packages/modal-infra)
+cd packages/modal-infra && uv sync && cd -
 ```
 
 Then run:
@@ -607,11 +612,24 @@ URL to match `https://open-inspect-{deployment_name}.vercel.app/api/auth/callbac
 
 ### Modal deployment fails
 
-```bash
-# Check Modal CLI is working
-modal token show
+If you see `ModuleNotFoundError` (e.g. `No module named 'httpx'`, `fastapi`, `jwt`): Terraform runs
+`uv run modal deploy` from `packages/modal-infra`. Ensure `uv` is on PATH and sync deps there:
 
-# View Modal logs
+```bash
+cd packages/modal-infra && uv sync
+```
+
+Then re-run `terraform apply`. To verify locally from the same directory:
+
+```bash
+cd packages/modal-infra
+uv run modal deploy deploy.py
+```
+
+Other checks:
+
+```bash
+modal token show
 modal app logs open-inspect
 ```
 
