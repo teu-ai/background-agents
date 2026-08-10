@@ -16,7 +16,7 @@
     "@open-inspect/shared": "file:../shared",
     "@tailwindcss/typography": "^0.5.19",
     "next": "^16.1.5",
-    "next-auth": "^4.24.11",
+    "next-auth": "^4.24.15",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",
